@@ -20,16 +20,63 @@ package null_test
 
 import (
 	"encoding/json"
-	null2 "github.com/panther-labs/panther/internal/log_analysis/log_processor/pantherlog/null"
 	"testing"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/stretchr/testify/require"
+
+	"github.com/panther-labs/panther/internal/log_analysis/log_processor/pantherlog/null"
 )
 
-func TestNullStringCodec(t *testing.T) {
+func TestStringCodec(t *testing.T) {
 	type A struct {
-		Foo null2.String `json:"foo,omitempty"`
+		Foo null.String `json:"foo,omitempty"`
+	}
+	{
+		a := A{}
+		err := jsoniter.UnmarshalFromString(`{"foo":"bar"}`, &a)
+		require.NoError(t, err)
+		require.Equal(t, "bar", a.Foo.Value)
+		data, err := jsoniter.MarshalToString(&a)
+		require.NoError(t, err)
+		require.Equal(t, `{"foo":"bar"}`, data)
+	}
+	{
+		a := A{}
+		err := jsoniter.UnmarshalFromString(`{"foo":""}`, &a)
+		require.NoError(t, err)
+		require.Equal(t, "", a.Foo.Value)
+		require.True(t, a.Foo.Exists)
+		data, err := jsoniter.MarshalToString(&a)
+		require.NoError(t, err)
+		require.Equal(t, `{"foo":""}`, data)
+	}
+	{
+		a := A{}
+		err := jsoniter.UnmarshalFromString(`{"foo":null}`, &a)
+		require.NoError(t, err)
+		require.Equal(t, "", a.Foo.Value)
+		require.False(t, a.Foo.Exists)
+		data, err := jsoniter.MarshalToString(&a)
+		require.NoError(t, err)
+		require.Equal(t, `{}`, data)
+	}
+	{
+		s := null.FromString("foo")
+		data, err := jsoniter.MarshalToString(&s)
+		require.NoError(t, err)
+		require.Equal(t, `"foo"`, data)
+	}
+	{
+		s := null.String{}
+		data, err := jsoniter.MarshalToString(&s)
+		require.NoError(t, err)
+		require.Equal(t, `null`, data)
+	}
+}
+func TestNonEmptyStringCodec(t *testing.T) {
+	type A struct {
+		Foo null.NonEmpty `json:"foo,omitempty"`
 	}
 	{
 		a := A{}
@@ -51,7 +98,7 @@ func TestNullStringCodec(t *testing.T) {
 		require.Equal(t, `{}`, data)
 	}
 	{
-		a := null2.String{}
+		a := null.String{}
 		err := jsoniter.UnmarshalFromString(`42`, &a)
 		require.Error(t, err)
 	}
@@ -66,7 +113,7 @@ func TestNullStringCodec(t *testing.T) {
 		require.Equal(t, `{}`, data)
 	}
 	{
-		s := null2.String{
+		s := null.String{
 			Value:  "foo",
 			Exists: true,
 		}
@@ -75,7 +122,7 @@ func TestNullStringCodec(t *testing.T) {
 		require.Equal(t, `"foo"`, data)
 	}
 	{
-		s := null2.String{}
+		s := null.String{}
 		data, err := jsoniter.MarshalToString(&s)
 		require.NoError(t, err)
 		require.Equal(t, `null`, data)
@@ -83,7 +130,7 @@ func TestNullStringCodec(t *testing.T) {
 }
 func TestNullStringUnmarshalJSON(t *testing.T) {
 	type A struct {
-		Foo null2.String `json:"foo,omitempty"`
+		Foo null.String `json:"foo,omitempty"`
 	}
 	{
 		a := A{}
@@ -105,7 +152,7 @@ func TestNullStringUnmarshalJSON(t *testing.T) {
 		require.Equal(t, `{"foo":""}`, string(data))
 	}
 	{
-		a := null2.String{}
+		a := null.String{}
 		err := json.Unmarshal([]byte(`{}`), &a)
 		require.Error(t, err)
 	}
@@ -122,37 +169,37 @@ func TestNullStringUnmarshalJSON(t *testing.T) {
 }
 func TestFromString(t *testing.T) {
 	{
-		s := null2.FromString("")
-		require.Equal(t, null2.String{Exists: true}, s)
+		s := null.FromString("")
+		require.Equal(t, null.String{Exists: true}, s)
 	}
 	{
-		s := null2.FromString("foo")
-		require.Equal(t, null2.String{Value: "foo", Exists: true}, s)
+		s := null.FromString("foo")
+		require.Equal(t, null.String{Value: "foo", Exists: true}, s)
 	}
 }
 func TestStringIsNull(t *testing.T) {
 	{
-		s := null2.String{}
+		s := null.String{}
 		require.True(t, s.IsNull())
 	}
 	{
-		s := null2.FromString("foo")
+		s := null.FromString("foo")
 		require.False(t, s.IsNull())
 	}
 }
 func TestNullStringString(t *testing.T) {
 	{
-		s := null2.String{}
+		s := null.String{}
 		require.Equal(t, "", s.String())
 	}
 	{
-		s := null2.String{
+		s := null.String{
 			Exists: true,
 		}
 		require.Equal(t, "", s.String())
 	}
 	{
-		s := null2.String{
+		s := null.String{
 			Value:  "foo",
 			Exists: true,
 		}
@@ -165,9 +212,9 @@ func BenchmarkNullString(b *testing.B) {
 	// nolint:lll
 	data12 := []byte(`{"f01":"01","f02":"02","f03":"03","f04":"04","f05":"05","f06":"06","f07":"07","f08":"08","f09":"09","f10":"10","f11":"11","f12":null}`)
 	type A struct {
-		Foo null2.String `json:"foo,omitempty"`
-		Bar null2.String `json:"bar,omitempty"`
-		Baz null2.String `json:"baz,omitempty"`
+		Foo null.String `json:"foo,omitempty"`
+		Bar null.String `json:"bar,omitempty"`
+		Baz null.String `json:"baz,omitempty"`
 	}
 	type B struct {
 		Foo *string `json:"foo,omitempty"`
@@ -175,18 +222,18 @@ func BenchmarkNullString(b *testing.B) {
 		Baz *string `json:"baz,omitempty"`
 	}
 	type DozenFieldsA struct {
-		F01 null2.String `json:"f01,omitempty"`
-		F02 null2.String `json:"f02,omitempty"`
-		F03 null2.String `json:"f03,omitempty"`
-		F04 null2.String `json:"f04,omitempty"`
-		F05 null2.String `json:"f05,omitempty"`
-		F06 null2.String `json:"f06,omitempty"`
-		F07 null2.String `json:"f07,omitempty"`
-		F08 null2.String `json:"f08,omitempty"`
-		F09 null2.String `json:"f09,omitempty"`
-		F10 null2.String `json:"f10,omitempty"`
-		F11 null2.String `json:"f11,omitempty"`
-		F12 null2.String `json:"f12,omitempty"`
+		F01 null.String `json:"f01,omitempty"`
+		F02 null.String `json:"f02,omitempty"`
+		F03 null.String `json:"f03,omitempty"`
+		F04 null.String `json:"f04,omitempty"`
+		F05 null.String `json:"f05,omitempty"`
+		F06 null.String `json:"f06,omitempty"`
+		F07 null.String `json:"f07,omitempty"`
+		F08 null.String `json:"f08,omitempty"`
+		F09 null.String `json:"f09,omitempty"`
+		F10 null.String `json:"f10,omitempty"`
+		F11 null.String `json:"f11,omitempty"`
+		F12 null.String `json:"f12,omitempty"`
 	}
 	type DozenFieldsB struct {
 		F01 *string `json:"f01,omitempty"`
@@ -228,11 +275,11 @@ func BenchmarkNullString(b *testing.B) {
 	})
 	b.Run("NullString Marshal 3 fields", func(b *testing.B) {
 		a := A{
-			Foo: null2.String{
+			Foo: null.String{
 				Value:  "foo",
 				Exists: true,
 			},
-			Bar: null2.String{
+			Bar: null.String{
 				Value:  "bar",
 				Exists: true,
 			},
