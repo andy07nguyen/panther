@@ -773,7 +773,7 @@ module.exports = /******/ (function (modules, runtime) {
 
           // https://developer.github.com/v3/pulls/#create-a-pull-request
           core.debug('Creating a pull request...');
-          const destPullRequest = await octokit.request(`POST /repos/${destRepo}/pulls`, {
+          const { data: destPullRequest } = await octokit.request(`POST /repos/${destRepo}/pulls`, {
             title: `${PR_TITLE_PREFIX} ${pullRequest.title}`,
             body: pullRequest.body,
             maintainer_can_modify: true,
