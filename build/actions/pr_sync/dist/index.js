@@ -732,7 +732,8 @@ module.exports = /******/ (function (modules, runtime) {
       const core = __webpack_require__(470);
       const github = __webpack_require__(469);
 
-      const PR_TITLE_PREFIX = '[OSS Sync]';
+      const PR_TITLE_PREFIX = '[Sync]';
+      const BRANCH_PREFIX = 'sync/';
       const MASTER_BRANCH = 'v1.0.1-docs';
 
       const main = async () => {
@@ -767,7 +768,7 @@ module.exports = /******/ (function (modules, runtime) {
           core.debug('Creating a branch from the merge commit...');
           const prBranchName = pullRequest.head.ref;
           await octokit.request(`POST /repos/${destRepo}/git/refs`, {
-            ref: `refs/heads/${prBranchName}`,
+            ref: `refs/heads/${BRANCH_PREFIX}${prBranchName}`,
             sha: pullRequest.merge_commit_sha,
           });
 
