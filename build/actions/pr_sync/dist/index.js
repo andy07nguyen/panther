@@ -801,7 +801,7 @@ module.exports = /******/ (function (modules, runtime) {
           await octokit.request(`PATCH /repos/${destRepo}/issues/${destPullRequest.number}`, {
             assignees: srcPullRequest.assignees.map(assignee => assignee.login),
             labels: srcPullRequest.labels.map(label => label.name),
-            milestone: srcPullRequest.milestone ? srcPullRequest.milestone.id : null,
+            milestone: srcPullRequest.milestone ? srcPullRequest.milestone.number : null,
           });
 
           // https://developer.github.com/v3/pulls/review_requests/#request-reviewers-for-a-pull-request
