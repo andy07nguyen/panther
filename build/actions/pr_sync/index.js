@@ -11,7 +11,6 @@ const main = async () => {
     const token = core.getInput('token');
 
     // Get the JSON webhook payload for the event that triggered the workflow
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const pullRequest = github.context.payload.pull_request;
 
     // If PR was closed, but it was not due to it being merged, then do nothing
