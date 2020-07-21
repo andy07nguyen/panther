@@ -20,8 +20,11 @@ package timestamp
 
 import (
 	"math"
+	"reflect"
 	"strconv"
 	"time"
+
+	"github.com/panther-labs/panther/internal/log_analysis/awsglue"
 )
 
 // These objects are used to read timestamps and ensure a consistent JSON output for timestamps.
@@ -40,6 +43,22 @@ const (
 
 	suricataTimestampLayout = `"2006-01-02T15:04:05.999999999Z0700"`
 )
+
+func init() {
+	typANSICwithTZ := reflect.TypeOf(ANSICwithTZ{})
+	typFluentd := reflect.TypeOf(FluentdTimestamp{})
+	typRFC3339 := reflect.TypeOf(RFC3339{})
+	typSuricata := reflect.TypeOf(SuricataTimestamp{})
+	typUnixFloat := reflect.TypeOf(UnixFloat{})
+	typUnixMillis := reflect.TypeOf(UnixMillisecond{})
+	// Add glue table mappings
+	awsglue.MustRegisterMapping(typANSICwithTZ, awsglue.GlueTimestampType)
+	awsglue.MustRegisterMapping(typFluentd, awsglue.GlueTimestampType)
+	awsglue.MustRegisterMapping(typRFC3339, awsglue.GlueTimestampType)
+	awsglue.MustRegisterMapping(typSuricata, awsglue.GlueTimestampType)
+	awsglue.MustRegisterMapping(typUnixFloat, awsglue.GlueTimestampType)
+	awsglue.MustRegisterMapping(typUnixMillis, awsglue.GlueTimestampType)
+}
 
 // use these functions to parse all incoming dates to ensure UTC consistency
 func Parse(layout, value string) (RFC3339, error) {
