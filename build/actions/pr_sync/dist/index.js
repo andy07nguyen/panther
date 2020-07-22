@@ -777,7 +777,6 @@ module.exports = /******/ (function (modules, runtime) {
 
           core.debug('Creating a branch from the merge commit...');
           execSync(`git remote add target https://github.com/${destRepo}.git`); // prettier-ignore
-          execSync(`git fetch --unshallow target`); // prettier-ignore
           execSync(`git checkout -b ${destPullRequestBranchName}`);
           execSync(`git config --global user.name "action"`);
           execSync(`git config --global user.email "action@action.com"`);
